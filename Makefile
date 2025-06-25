@@ -39,18 +39,18 @@ venv: .venv
 	python3 -m venv .venv
 	.venv/bin/pip3 install -r requirements.txt
 
-.damlsdk: asset-model/daml.yaml
+.damlsdk: daml-versions.yaml
 	scripts/install-daml-sdk.sh $< $@
 
-.protobufs: asset-model/daml.yaml
+.protobufs: daml-versions.yaml
 	scripts/install-protobufs.sh $< $@ target
 
-protobuf_filename = $(shell cat .protobufs)
+protobuf_tag = $(shell cat .protobufs)
 
 target/_gen/.gen: .venv .protobufs
 	mkdir -p target/_gen
 
-	(cd target && unzip -o ${protobuf_filename})
+	(cd target && unzip -o "protobufs-${protobuf_tag}.zip")
 
 	.venv/bin/python3 -m grpc_tools.protoc \
 	    -Ivendor \

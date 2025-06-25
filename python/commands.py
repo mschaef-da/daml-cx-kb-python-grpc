@@ -138,7 +138,7 @@ def cmd_allocate_party(ctx, base_name):
     if existing_party is not None:
         return existing_party
 
-    resp = ctx.ledger.allocate_party(base_name, base_name)
+    resp = ctx.ledger.allocate_party(base_name)
 
     show_output(resp)
     return resp.party_details.party
