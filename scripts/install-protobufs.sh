@@ -4,34 +4,35 @@ set -eou pipefail
 
 source "$(dirname "$0")/libcli.source"
 
-project_daml_yaml="$1"
-completion_file="$2"
-target_directory="$3"
-if [ -z "$project_daml_yaml" ] || [ -z "$completion_file" ]; then
+versions_yaml="$1"
+output="$2"
+if [ -z "$versions_yaml" ] || [ -z "$output" ]; then
     _error "Usage - $0 <path to versions yaml> <path to .protobufs>"
 fi
 
 function yaml_value() {
   local path=$1
-  yq -re "$path" "$project_daml_yaml" 2>/dev/null
+  yq -re "$path" "$versions_yaml" 2>/dev/null
 }
 
-if ! protobuf_url=$(yaml_value '.["protobuf-url"]'); then
-  _error "Cannot read protobuf-url from $project_daml_yaml"
+if ! daml_version=$(yaml_value '.["sdk-version"]'); then
+  _error "Cannot read Daml SDK version from $versions_yaml"
+fi
+if ! daml_tag=$(yaml_value '.["sdk-tag"]'); then
+  _error "Cannot read Daml SDK tag from $versions_yaml"
 fi
 
-if ! protobuf_filename=$(yaml_value '.["protobuf-filename"]'); then
-  _error "Cannot read protobuf-filename from $project_daml_yaml"
-fi
+protobufs="protobufs-$daml_tag.zip"
+url="https://github.com/digital-asset/daml/releases/download/v$daml_version/$protobufs"
 
-_info "== Downloading protobuf models ${protobuf_filename}
-from: ${protobuf_url}
-to: ${target_directory}"
+mkdir -p target
 
-mkdir -p "${target_directory}"
+_info "== Downloading protobuf models $daml_version
+from: $url
+to: target/$protobufs"
 
-curl --fail -L "${protobuf_url}/${protobuf_filename}" -o "${target_directory}/${protobuf_filename}"
+curl --fail -L "$url" -o "target/$protobufs"
 
-echo "${protobuf_filename}" > "$completion_file"
+echo "$daml_tag" > "$output"
 
 _info "== Downloaded protobuf models."

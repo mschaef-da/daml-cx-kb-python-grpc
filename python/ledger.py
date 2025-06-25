@@ -38,9 +38,9 @@ def _ensure_list(p):
 
 
 class LedgerConnection:
-    def __init__(self, addr, *, application_id="default"):
+    def __init__(self, addr, *, user_id="default"):
         self.addr = addr
-        self.application_id = application_id
+        self.user_id = user_id
         self.channel = None
 
     def __enter__(self):
@@ -99,7 +99,7 @@ class LedgerConnection:
         req = party_management_service_pb2.ListKnownPartiesRequest()
 
         return [
-            {"party": p.party, "is_local": p.is_local, "display_name": p.display_name}
+            {"party": p.party, "is_local": p.is_local}
             for p in self._party_management_service.ListKnownParties(req).party_details
         ]
 
@@ -113,9 +113,9 @@ class LedgerConnection:
 
         return None
 
-    def allocate_party(self, party_id_hint, display_name):
+    def allocate_party(self, party_id_hint):
         req = party_management_service_pb2.AllocatePartyRequest(
-            party_id_hint=party_id_hint, display_name=display_name
+            party_id_hint=party_id_hint
         )
 
         return self._party_management_service.AllocateParty(req)
@@ -161,7 +161,7 @@ class LedgerConnection:
         disclosed_contracts=[],
     ):
         commands = commands_pb2.Commands(
-            application_id=self.application_id,
+            user_id=self.user_id,
             command_id=command_id or self._gen_command_id(),
             act_as=_ensure_list(act_as),
             commands=_ensure_list(commands),

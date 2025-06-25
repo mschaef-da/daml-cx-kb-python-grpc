@@ -171,7 +171,6 @@ def DECODE_FAIL(v, message=None):
 
 def decode_active_contract(v):
     return {
-        "domain_id": v.domain_id,
         "reassignment_counter": v.reassignment_counter,
         **decode(v.created_event),
     }
@@ -184,7 +183,7 @@ def decode_party_list(parties):
 def decode_archived_event(v):
     return {
         "event": "archived",
-        "event_id": v.event_id,
+        "offset": v.offset,
         "contract_id": v.contract_id,
         "template_id": decode(v.template_id),
         "witness_parties": decode_party_list(v.witness_parties),
@@ -195,7 +194,7 @@ def decode_archived_event(v):
 def decode_created_event(v):
     return {
         "event": "created",
-        "event_id": v.event_id,
+        "offset": v.offset,
         "contract_id": v.contract_id,
         "template_id": decode(v.template_id),
         "witness_parties": decode_party_list(v.witness_parties),
@@ -326,7 +325,6 @@ def decode_transaction(v):
         "update_id": v.update_id,
         "command_id": v.command_id,
         "workflow_id": v.workflow_id,
-        "domain_id": v.domain_id,
         "offset": v.offset,
         "events": [decode_event(e) for e in v.events],
     }
