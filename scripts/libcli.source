@@ -1,4 +1,7 @@
 # -*- shell-script -*-
+# Copyright 2025 Digital Asset (Switzerland) GmbH and/or its affiliates
+# SPDX-License-Identifier: BSD0
+
 
 # common functions for use with bash based clis
 # all functions must be prefixed with _

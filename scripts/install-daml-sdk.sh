@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
+# Copyright 2025 Digital Asset (Switzerland) GmbH and/or its affiliates
+# SPDX-License-Identifier: BSD0
 
-# A script to install the snapshot releases of the Daml SDK that we use in this repo.
+
+# A script to install the snapshot releases of the Daml SDK that we
+# use in this repo.
 
 source "$(dirname "$0")/libcli.source"
 

@@ -1,8 +1,8 @@
-# Copyright (c) 2024 Digital Asset (Switzerland) GmbH and/or its
+# Copyright (c) 2025 Digital Asset (Switzerland) GmbH and/or its
 # affiliates. All rights reserved.
 #
-# This code is DA Background Intellectual Property as defined in the
-# Master Product Agreement between DA and the client.
+# Copyright 2025 Digital Asset (Switzerland) GmbH and/or its affiliates
+# SPDX-License-Identifier: BSD0
 
 import time
 import grpc
