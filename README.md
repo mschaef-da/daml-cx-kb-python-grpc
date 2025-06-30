@@ -1,9 +1,16 @@
+# daml-cx-kb-python-grpc
 
 This is a sample program intended to illustrate basic interaction with
 a Canton ledger via direct Python calls to the Ledger API. It is
 composed of a simple Daml model, code to manage a local sandbox
 running that model, and a Python program that can execute various
 commands against that sandbox instance.
+
+## Disclaimer
+
+This code is presented as an example only, with no guarantees made
+about fitness or suitablity for any purpose. See the license text
+below for more details.
 
 ## Setting up Your Development Environment
 
@@ -88,7 +95,7 @@ party_details {
 n= 1
 ```
 
-### Alice Issues an Asset and Inspects the Result
+### Alice issues an asset and inspects the result
 
 ```
 $ ./run issue-asset alice widget
@@ -101,7 +108,7 @@ $ ./run list-updates alice
         'owner': Party(party='alice::122005d3eb878afd11dd6b6356f0b0cd3743412022dfe495b69f2a9bae307698ae26')}
 ```
 
-### Alice Transfers the Asset to Bob and Looks at the Transaction Log
+### Alice transfers the asset to Bob and looks at the transaction log
 
 ```
 $ ./run give-asset 00cc9fc2e39a3c1b714fe0f098d3316b5f05fa9df36989b6d3f87d21c3b4fd37e8ca10122075714ad478b8f1b16939df7eab16c64cf483852e50ffa03de9051af93657edbe alice bob
@@ -130,7 +137,7 @@ A couple observations on the transaction log:
   the contract indicating Alice owns the widget and the creation of
   the contract indicating Bob owns the same.
 
-### Bob Observes he can See the Asset
+### Bob Observes he can see the asset
 
 ```
 $ ./run list-updates bob
@@ -145,7 +152,7 @@ Note that Bob sees the same transfer transaction (offset 21) as
 Alice. (Which makes sense, since this is the transaction in which he
 gained ownership of the asset.)
 
-### Bob Attempts to Archive the Asset
+### Bob attempts to archive the asset
 
 ```
 $ ./run archive-asset 00bd3b6653ec749cf979f71921cb199b4f7e740819613ddffec29e300396664cacca101220ca162b15550237839923d40ccc58e548c0d5a63b2d0b45a7e392bd86b86631d6 bob
@@ -160,7 +167,7 @@ grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
 
 Bob does not have rights to do this.
 
-### Alice Archives the Asset Successfully and Inspects the Result
+### Alice archives the asset successfully and inspects the result
 
 ```
 $ ./run archive-asset 00bd3b6653ec749cf979f71921cb199b4f7e740819613ddffec29e300396664cacca101220ca162b15550237839923d40ccc58e548c0d5a63b2d0b45a7e392bd86b86631d6 alice
@@ -184,3 +191,20 @@ $ ./run list-updates alice
 ===== Transaction ofs: 25, command_id: d4192db34f5c41ac9e4a04defd2ea34e, wfid:
   === EVENT:  archived Main:Asset 00bd3b6653ec749cf979f71921cb199b4f7e740819613ddffec29e300396664cacca101220ca162b15550237839923d40ccc58e548c0d5a63b2d0b45a7e392bd86b86631d6
 ```
+
+## License
+
+**You may use the contents of this repository in parts or in whole according to the `0BSD` license.**
+
+Copyright &copy; 2025 Digital Asset (Switzerland) GmbH and/or its affiliates
+
+> Permission to use, copy, modify, and/or distribute this software for
+> any purpose with or without fee is hereby granted.
+>
+> THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL
+> WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+> OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+> FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+> DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+> AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+> OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
