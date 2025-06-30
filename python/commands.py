@@ -20,7 +20,8 @@ from .util import FAIL, to_boolean
 from .ledger import create_contract, exercise_contract_choice
 from .value import Package, party
 
-ASSET_MODEL = Package("#asset-model")
+# ASSET_MODEL = Package("#asset-model")
+ASSET_MODEL = Package("6644bda60ddb916433ed5b1dd6e387bfed126099506abcbaaabc09e4a4664d8f")
 
 ASSET_ID = ASSET_MODEL.id("Main", "Asset")
 

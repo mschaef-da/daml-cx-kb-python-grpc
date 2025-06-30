@@ -35,7 +35,6 @@ fi
 
 daml sandbox --debug \
      ${dar_opts} \
-     --json-api-port 8089 \
      &> log/canton-console.log &
 echo $! > "$pid_file"
 

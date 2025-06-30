@@ -8,13 +8,13 @@ import datetime
 import decimal
 import json
 
-import com.daml.ledger.api.v2.command_service_pb2 as command_service_pb2
-import com.daml.ledger.api.v2.commands_pb2 as commands_pb2
-import com.daml.ledger.api.v2.event_pb2 as event_pb2
-import com.daml.ledger.api.v2.state_service_pb2 as state_service_pb2
-import com.daml.ledger.api.v2.transaction_pb2 as transaction_pb2
-import com.daml.ledger.api.v2.update_service_pb2 as update_service_pb2
-import com.daml.ledger.api.v2.value_pb2 as value_pb2
+import com.daml.ledger.api.v1.command_service_pb2 as command_service_pb2
+import com.daml.ledger.api.v1.commands_pb2 as commands_pb2
+import com.daml.ledger.api.v1.event_pb2 as event_pb2
+import com.daml.ledger.api.v1.active_contracts_service_pb2 as active_contracts_service_pb2
+import com.daml.ledger.api.v1.transaction_pb2 as transaction_pb2
+import com.daml.ledger.api.v1.transaction_service_pb2 as transaction_service_pb2
+import com.daml.ledger.api.v1.value_pb2 as value_pb2
 
 from dataclasses import dataclass
 
@@ -169,12 +169,6 @@ def DECODE_FAIL(v, message=None):
     FAIL(f"Cannot decode value. {extra_msg}Type: {type(v)}")
 
 
-def decode_active_contract(v):
-    return {
-        "reassignment_counter": v.reassignment_counter,
-        **decode(v.created_event),
-    }
-
 
 def decode_party_list(parties):
     return [party(p) for p in parties]
@@ -183,7 +177,6 @@ def decode_party_list(parties):
 def decode_archived_event(v):
     return {
         "event": "archived",
-        "offset": v.offset,
         "contract_id": v.contract_id,
         "template_id": decode(v.template_id),
         "witness_parties": decode_party_list(v.witness_parties),
@@ -194,7 +187,6 @@ def decode_archived_event(v):
 def decode_created_event(v):
     return {
         "event": "created",
-        "offset": v.offset,
         "contract_id": v.contract_id,
         "template_id": decode(v.template_id),
         "witness_parties": decode_party_list(v.witness_parties),
@@ -322,7 +314,7 @@ def decode_event(v):
 
 def decode_transaction(v):
     return {
-        "update_id": v.update_id,
+        "transaction_id": v.transaction_id,
         "command_id": v.command_id,
         "workflow_id": v.workflow_id,
         "offset": v.offset,
@@ -330,19 +322,13 @@ def decode_transaction(v):
     }
 
 
-def decode_updates_response(v):
-    if v.HasField("transaction"):
-        return decode_transaction(v.transaction)
-    elif v.HasField("reassignment"):
-        DECODE_FAIL(v, "domain reassignments not currently supported")
-    else:
-        DECODE_FAIL(v)
+def decode_transactions_response(v):
+    return [decode_transaction(t) for t in v.transactions]
 
 
 def decode(v):
-    if isinstance(v, state_service_pb2.ActiveContract):
-        return decode_active_contract(v)
-    elif isinstance(v, event_pb2.ArchivedEvent):
+
+    if isinstance(v, event_pb2.ArchivedEvent):
         return decode_archived_event(v)
     elif isinstance(v, event_pb2.CreatedEvent):
         return decode_created_event(v)
@@ -360,8 +346,8 @@ def decode(v):
         return decode_transaction(v)
     elif isinstance(v, command_service_pb2.SubmitAndWaitForTransactionResponse):
         return decode(v.transaction)
-    elif isinstance(v, update_service_pb2.GetUpdatesResponse):
-        return decode_updates_response(v)
+    elif isinstance(v, transaction_service_pb2.GetTransactionsResponse):
+        return decode_transactions_response(v)
     else:
         DECODE_FAIL(v)
 

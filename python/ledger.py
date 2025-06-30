@@ -9,22 +9,26 @@ import grpc
 import pprint
 import uuid
 
-import com.daml.ledger.api.v2.admin.party_management_service_pb2 as party_management_service_pb2
-import com.daml.ledger.api.v2.admin.party_management_service_pb2_grpc as party_management_service_pb2_grpc
-import com.daml.ledger.api.v2.command_service_pb2 as command_service_pb2
-import com.daml.ledger.api.v2.command_service_pb2_grpc as command_service_pb2_grpc
-import com.daml.ledger.api.v2.commands_pb2 as commands_pb2
-import com.daml.ledger.api.v2.package_service_pb2 as package_service_pb2
-import com.daml.ledger.api.v2.package_service_pb2_grpc as package_service_pb2_grpc
-import com.daml.ledger.api.v2.state_service_pb2 as state_service_pb2
-import com.daml.ledger.api.v2.state_service_pb2_grpc as state_service_pb2_grpc
-import com.daml.ledger.api.v2.transaction_filter_pb2 as transaction_filter_pb2
-import com.daml.ledger.api.v2.value_pb2 as value_pb2
-import com.daml.ledger.api.v2.version_service_pb2 as version_service_pb2
-import com.daml.ledger.api.v2.version_service_pb2_grpc as version_service_pb2_grpc
-import com.daml.ledger.api.v2.update_service_pb2 as update_service_pb2
-import com.daml.ledger.api.v2.update_service_pb2_grpc as update_service_pb2_grpc
+import com.daml.ledger.api.v1.admin.party_management_service_pb2 as party_management_service_pb2
+import com.daml.ledger.api.v1.admin.party_management_service_pb2_grpc as party_management_service_pb2_grpc
+import com.daml.ledger.api.v1.command_service_pb2 as command_service_pb2
+import com.daml.ledger.api.v1.command_service_pb2_grpc as command_service_pb2_grpc
+import com.daml.ledger.api.v1.commands_pb2 as commands_pb2
+import com.daml.ledger.api.v1.package_service_pb2 as package_service_pb2
+import com.daml.ledger.api.v1.package_service_pb2_grpc as package_service_pb2_grpc
+import com.daml.ledger.api.v1.active_contracts_service_pb2 as active_contracts_service_pb2
+import com.daml.ledger.api.v1.active_contracts_service_pb2_grpc as active_contracts_service_pb2_grpc
+import com.daml.ledger.api.v1.transaction_filter_pb2 as transaction_filter_pb2
+import com.daml.ledger.api.v1.value_pb2 as value_pb2
+import com.daml.ledger.api.v1.version_service_pb2 as version_service_pb2
+import com.daml.ledger.api.v1.version_service_pb2_grpc as version_service_pb2_grpc
+import com.daml.ledger.api.v1.transaction_service_pb2 as transaction_service_pb2
+import com.daml.ledger.api.v1.transaction_service_pb2_grpc as transaction_service_pb2_grpc
+import com.daml.ledger.api.v1.ledger_offset_pb2 as ledger_offset_pb2
 
+
+LEDGER_OFFSET_BEGIN=ledger_offset_pb2.LedgerOffset(boundary=ledger_offset_pb2.LedgerOffset.LEDGER_BEGIN)
+LEDGER_OFFSET_END=ledger_offset_pb2.LedgerOffset(boundary=ledger_offset_pb2.LedgerOffset.LEDGER_END)
 
 from .util import FAIL
 from .value import record, value, decode
@@ -38,9 +42,9 @@ def _ensure_list(p):
 
 
 class LedgerConnection:
-    def __init__(self, addr, *, user_id="default"):
+    def __init__(self, addr, *, application_id="default"):
         self.addr = addr
-        self.user_id = user_id
+        self.application_id = application_id
         self.channel = None
 
     def __enter__(self):
@@ -64,9 +68,9 @@ class LedgerConnection:
         self._party_management_service = (
             party_management_service_pb2_grpc.PartyManagementServiceStub(channel)
         )
-        self._state_service = state_service_pb2_grpc.StateServiceStub(channel)
+        self._active_contracts_service = active_contracts_service_pb2_grpc.ActiveContractsServiceStub(channel)
         self._command_service = command_service_pb2_grpc.CommandServiceStub(channel)
-        self._update_service = update_service_pb2_grpc.UpdateServiceStub(channel)
+        self._transaction_service = transaction_service_pb2_grpc.TransactionServiceStub(channel)
 
         return self
 
@@ -86,9 +90,9 @@ class LedgerConnection:
         return self._version_service.GetLedgerApiVersion(req).version
 
     def get_ledger_end(self):
-        req = state_service_pb2.GetLedgerEndRequest()
+        req = transaction_service_pb2.GetLedgerEndRequest()
 
-        return self._state_service.GetLedgerEnd(req).offset
+        return self._transaction_service.GetLedgerEnd(req).offset
 
     def get_ledger_packages(self):
         req = package_service_pb2.ListPackagesRequest()
@@ -128,25 +132,26 @@ class LedgerConnection:
                 )
             )
 
-
         return transaction_filter_pb2.TransactionFilter(
             filters_by_party={
                 party: transaction_filter_pb2.Filters(
-                    cumulative=[
-                        template_filter(tid) for tid in _ensure_list(template_ids)
-                    ]
+                    inclusive=transaction_filter_pb2.InclusiveFilters(
+                        template_filters=[
+                            template_filter(tid) for tid in _ensure_list(template_ids)
+                        ]
+                    )
                 )
             }
         )
 
     def get_active_contracts(self, party, template_ids=[]):
-        req = state_service_pb2.GetActiveContractsRequest(
+        req = active_contracts_service_pb2.GetActiveContractsRequest(
             filter=self._get_transaction_filter(party, template_ids), verbose=True
         )
 
         return [
             decode(c.active_contract)
-            for c in self._state_service.GetActiveContracts(req)
+            for c in self._active_contracts_service.GetActiveContracts(req)
             if not c.offset
         ]
 
@@ -161,7 +166,7 @@ class LedgerConnection:
         disclosed_contracts=[],
     ):
         commands = commands_pb2.Commands(
-            user_id=self.user_id,
+            application_id=self.application_id,
             command_id=command_id or self._gen_command_id(),
             act_as=_ensure_list(act_as),
             commands=_ensure_list(commands),
@@ -173,24 +178,26 @@ class LedgerConnection:
 
         return decode(self._command_service.SubmitAndWaitForTransaction(req))
 
-    def _get_updates(self, begin_exclusive, end_inclusive, party, template_ids=[]):
-        req = update_service_pb2.GetUpdatesRequest(
-            begin_exclusive=begin_exclusive,
-            end_inclusive=end_inclusive,
+    def _get_updates(self, begin, end, party, template_ids=[]):
+        req = transaction_service_pb2.GetTransactionsRequest(
             filter=self._get_transaction_filter(party, template_ids),
-            verbose=True,
-        )
+            begin=begin,
+            end=end,
+            verbose=True)
 
-        for u in self._update_service.GetUpdates(req):
-            yield decode(u)
+        for u in self._transaction_service.GetTransactions(req):
+            for t in decode(u):
+                yield t
 
     def get_updates(self, party, template_ids=[]):
         offset_end = self.get_ledger_end()
-        return self._get_updates(0, offset_end, party, template_ids)
+        return self._get_updates(LEDGER_OFFSET_BEGIN,
+                                 LEDGER_OFFSET_END,
+                                 party, template_ids)
 
     def get_update_stream(self, party, template_ids=[]):
         offset_end = self.get_ledger_end()
-        return self._get_updates(offset_end, None, party, template_ids)
+        return self._get_updates(LEDGER_OFFSET_END, None, party, template_ids)
 
 
 def create_contract(tid, create_arguments):
