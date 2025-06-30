@@ -12,13 +12,12 @@ This code is presented as an example only, with no guarantees made
 about fitness or suitablity for any purpose. See the license text
 below for more details.
 
-## Setting up Your Development Environment
+## Setting up Your Development Environment and Building the Project
 
 1. Install the following dependencies:
 
    | Tool                                                                                | Minimum Version |
    |-------------------------------------------------------------------------------------|-----------------|
-   | [direnv](https://direnv.net/#basic-installation)                                    | 2.34.0          |
    | [yq](https://github.com/mikefarah/yq)                                               | 4.25.3          |
    | [GNU Make](https://www.gnu.org/software/make/)                                      | 3.81            |
    | [Open JDK 17](https://www.azul.com/downloads/?version=java-17-lts&package=jdk#zulu) | 17              |
