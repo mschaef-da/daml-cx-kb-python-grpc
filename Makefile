@@ -26,6 +26,7 @@ clean: stop-ledger                             ## Reset the build to a clean sta
 	(cd asset-model && daml clean)
 	rm -fr .damlsdk .protobufs target
 	rm -fr python/__pycache__
+	rm -frv log/*
 
 .PHONY: clean-all
 clean-all: clean                               ## Reset the build to a fully clean state, including the Python venv
@@ -39,10 +40,10 @@ venv: .venv
 	python3 -m venv .venv
 	.venv/bin/pip3 install -r requirements.txt
 
-.damlsdk: daml-versions.yaml
+.damlsdk: daml.yaml
 	scripts/install-daml-sdk.sh $< $@
 
-.protobufs: daml-versions.yaml
+.protobufs: daml.yaml
 	scripts/install-protobufs.sh $< $@ target
 
 protobuf_tag = $(shell cat .protobufs)

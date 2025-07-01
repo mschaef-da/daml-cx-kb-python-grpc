@@ -47,4 +47,9 @@ _info "Waiting 30 seconds for startup..."
 
 sleep 30
 
-_info "...Ledger running"
+if ps -p $pid > /dev/null; then
+    _info "...Ledger running"
+else
+    rm "$pid_file"
+    _error "Ledger failed to start... check logs in logs/ to diagnose."
+fi
